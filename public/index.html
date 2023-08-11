@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <title>Appointement booking app</title>
+    <style>
+      .delete,
+      .edit {
+        float: right;
+        position: relative;
+        bottom: 0.25rem;
+        margin: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light border-bottom border-3 border-success"
+    >
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Appointement World</a>
+        <div class="float-right" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">About Us</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <main class="container">
+      <form class="container p-3 border-bottom border-primary" id="form">
+        <div class="mb-3">
+          <label for="amount" class="form-label">Amount</label>
+          <input
+            type="number"
+            class="form-control"
+            name="amount"
+            id="amount"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="name" class="form-label">Name</label>
+          <input
+            type="name"
+            class="form-control"
+            id="name"
+            name="name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="name" class="form-label">Type</label>
+          <select
+            class="form-select"
+            aria-label="Default select example"
+            id="type"
+          >
+            <option selected>Open this select menu</option>
+            <option value="food">Food</option>
+            <option value="outfit">Outfit</option>
+            <option value="property">Property</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success" id="submit">
+          Submit
+        </button>
+      </form>
+      <div class="li_container container"></div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      window.onload = () => {
+        fetchAll();
+      };
+      document.getElementById("form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        console.log("creating");
+        let amount = document.getElementById("amount").value;
+        let name = document.getElementById("name").value;
+        let type = document.getElementById("type").value;
+
+        const expense = { amount, name, type };
+        createExpense(expense);
+      });
+      function createExpense(expense) {
+        const { amount, name, type } = expense;
+        axios
+          .post("/api/expense", expense)
+          .then((response) => {
+            const { id } = response.data;
+            const newLi = document.createElement("li");
+            newLi.setAttribute("class", "list-group-item");
+            newLi.setAttribute("id", id);
+
+            let amountTextNode = document.createTextNode(amount + "  ");
+            let nameTextNode = document.createTextNode(name + "  ");
+            let typeTextNode = document.createTextNode(type);
+
+            newLi.appendChild(amountTextNode);
+            newLi.appendChild(nameTextNode);
+            newLi.appendChild(typeTextNode);
+
+            let edit_btn = document.createElement("button");
+            edit_btn.setAttribute(
+              "class",
+              "btn btn-sm btn-primary float-right edit"
+            );
+            edit_btn.textContent = "+";
+
+            newLi.appendChild(edit_btn);
+
+            edit_btn.addEventListener("click", (e) => {
+              editLi(id, e.target.parentElement, expense);
+            });
+
+            let del_btn = document.createElement("button");
+            del_btn.setAttribute(
+              "class",
+              "btn btn-sm btn-danger float-right delete"
+            );
+            del_btn.textContent = "X";
+
+            newLi.appendChild(del_btn);
+
+            del_btn.addEventListener("click", (e) => {
+              deleteLi(id, e.target.parentElement);
+            });
+
+            document.querySelector(".li_container").appendChild(newLi);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+      function fetchAll() {
+        axios
+          .get("/api/expense")
+          .then((response) => {
+            const appointments = response.data;
+            const cont = document.querySelector(".li_container");
+            appointments.forEach((appointment) => {
+              const { id, amount, name, type } = appointment;
+              let newLi = document.createElement("li");
+              newLi.setAttribute("class", "list-group-item");
+              newLi.setAttribute("id", id);
+
+              let amountTextNode = document.createTextNode(amount + "  ");
+              let nameTextNode = document.createTextNode(name + "  ");
+              let typeTextNode = document.createTextNode(type);
+
+              newLi.appendChild(amountTextNode);
+              newLi.appendChild(nameTextNode);
+              newLi.appendChild(typeTextNode);
+
+              let edit_btn = document.createElement("a");
+              edit_btn.setAttribute(
+                "class",
+                "btn btn-sm btn-primary float-right edit"
+              );
+              edit_btn.textContent = "+";
+
+              newLi.appendChild(edit_btn);
+
+              edit_btn.addEventListener("click", (e) => {
+                editLi(id, e.target.parentElement, { amount, name, type });
+              });
+
+              let del_btn = document.createElement("button");
+              del_btn.setAttribute(
+                "class",
+                "btn btn-sm btn-danger float-right delete"
+              );
+              del_btn.textContent = "X";
+
+              newLi.appendChild(del_btn);
+
+              del_btn.addEventListener("click", (e) => {
+                deleteLi(id, e.target.parentElement);
+              });
+              cont.appendChild(newLi);
+            });
+          })
+          .catch((error) => console.error(error));
+      }
+
+      function deleteLi(id, e) {
+        e.remove();
+        axios
+          .delete(`/api/expense/${id}`)
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => console.error(error));
+      }
+      // function editLi(id, e, expense) {
+      //   document
+      //     .getElementById("form")
+      //     .removeEventListener("click", createExpense);
+
+      //   e.remove();
+      //   const { amount, name, type } = expense;
+
+      //   document.getElementById("amount").value = amount;
+      //   document.getElementById("name").value = name;
+      //   document.getElementById("type").value = type;
+
+      //   document.getElementById("form").addEventListener("submit", (e) => {
+      //     e.preventDefault();
+      //     console.log("updating");
+      //     axios.put(`/api/expense/${id}`, expense).then((response) => {
+      //       console.log(response);
+      //     });
+      //   });
+      // }
+    </script>
+  </body>
+</html>
